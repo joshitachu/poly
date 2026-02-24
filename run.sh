@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# run.sh — Wrapper to run weather or fastloop trader with logging
+#
+# Usage:
+#   ./run.sh weather    # Run weather trader (paper mode, quiet)
+#   ./run.sh fastloop   # Run fastloop BTC trader (paper mode, quiet)
+#   ./run.sh status     # Check account balance & positions
+#
+# Cron examples:
+#   */30 * * * * /path/to/poly/run.sh weather  >> /path/to/poly/logs/weather.log 2>&1
+#   */5  * * * * /path/to/poly/run.sh fastloop >> /path/to/poly/logs/fastloop.log 2>&1
+
+set -euo pipefail
+
+# ── Configuration ──────────────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Load API key from .env file
+if [ -f "$SCRIPT_DIR/.env" ]; then
+  set -a
+  source "$SCRIPT_DIR/.env"
+  set +a
+fi
+
+if [ -z "$SIMMER_API_KEY" ]; then
+  echo "Error: SIMMER_API_KEY not set. Create a .env file — see .env.example"
+  exit 1
+fi
+
+# Ensure logs directory exists
+mkdir -p "$SCRIPT_DIR/logs"
+
+# ── Timestamp helper ───────────────────────────────────────────────
+ts() {
+  echo "--- $(date -u '+%Y-%m-%d %H:%M:%S UTC') ---"
+}
+
+# ── Main ───────────────────────────────────────────────────────────
+MODE="${1:-help}"
+
+case "$MODE" in
+  weather)
+    ts
+    python "$SCRIPT_DIR/weather-trader/weather_trader.py" --quiet
+    echo ""
+    ;;
+  fastloop)
+    ts
+    python "$SCRIPT_DIR/fastloop_trader.py" --quiet
+    echo ""
+    ;;
+  status)
+    ts
+    python "$SCRIPT_DIR/weather-trader/scripts/status.py" --positions
+    ;;
+  help|*)
+    echo "Usage: $0 {weather|fastloop|status}"
+    echo ""
+    echo "  weather   Run weather trader (paper mode, quiet)"
+    echo "  fastloop  Run BTC fastloop trader (paper mode, quiet)"
+    echo "  status    Show account balance & positions"
+    exit 1
+    ;;
+esac

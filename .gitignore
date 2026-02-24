@@ -1,0 +1,17 @@
+# Secrets
+.env
+
+# Runtime data
+daily_spend.json
+logs/*.log
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
