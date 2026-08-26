@@ -25,11 +25,6 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
   set +a
 fi
 
-if [ -z "${SIMMER_API_KEY:-}" ]; then
-  echo "Error: SIMMER_API_KEY not set. Create a .env file — see .env.example"
-  exit 1
-fi
-
 # Ensure logs directory exists
 mkdir -p "$SCRIPT_DIR/logs"
 
@@ -40,6 +35,16 @@ ts() {
 
 # ── Main ───────────────────────────────────────────────────────────
 MODE="${1:-help}"
+
+# Only the modes that hit the Simmer API need a key; `summary` reads local logs
+case "$MODE" in
+  weather|fastloop|status)
+    if [ -z "${SIMMER_API_KEY:-}" ]; then
+      echo "Error: SIMMER_API_KEY not set. Create a .env file — see .env.example"
+      exit 1
+    fi
+    ;;
+esac
 
 case "$MODE" in
   weather)
@@ -56,12 +61,17 @@ case "$MODE" in
     ts
     "$PYTHON" "$SCRIPT_DIR/weather-trader/scripts/status.py" --positions
     ;;
+  summary)
+    shift
+    "$PYTHON" "$SCRIPT_DIR/scripts/summarize_logs.py" "$@"
+    ;;
   help|*)
-    echo "Usage: $0 {weather|fastloop|status}"
+    echo "Usage: $0 {weather|fastloop|status|summary}"
     echo ""
     echo "  weather   Run weather trader (paper mode, quiet)"
     echo "  fastloop  Run BTC fastloop trader (paper mode, quiet)"
     echo "  status    Show account balance & positions"
+    echo "  summary   Summarize past runs from logs/ (accepts --since, --json)"
     exit 1
     ;;
 esac

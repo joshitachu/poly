@@ -29,6 +29,9 @@ python3 test_demo.py
 
 # Check account balance & positions
 ./run.sh status
+
+# Summarize past runs from logs/
+./run.sh summary
 ```
 
 `run.sh` calls `python3` by default. To use a virtualenv or another interpreter,
@@ -69,6 +72,23 @@ Add these lines to your crontab:
 */5  * * * * /path/to/poly/run.sh fastloop >> /path/to/poly/logs/fastloop.log 2>&1
 ```
 
+## Reading the Logs
+
+Both bots run quiet under cron, so `logs/` fills up with a long tail of
+"no trade" lines. `./run.sh summary` rolls those up per log — run count, trades
+executed, and a histogram of *why* it declined the rest of the time. That
+histogram is the useful part: if one reason dominates, the corresponding
+threshold in `config.json` is probably mistuned.
+
+```bash
+./run.sh summary                  # all logs, all history
+./run.sh summary --since 24h      # last day only (also 90m, 7d)
+./run.sh summary --json           # machine-readable, for dashboards
+./run.sh summary --log logs/fastloop.log   # one log
+```
+
+Reads local files only — no API key required.
+
 ## Configuration
 
 - `config.json` — fastloop bot settings (threshold, momentum, position size)
@@ -83,6 +103,8 @@ poly/
   fastloop_trader.py      # BTC 5-min fast market trader
   config.json             # Fastloop config
   requirements.txt        # Python dependencies
+  scripts/
+    summarize_logs.py     # Roll up run logs (runs, trades, no-trade reasons)
   weather-trader/
     weather_trader.py     # NOAA weather trader
     config.json           # Weather config
