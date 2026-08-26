@@ -118,6 +118,12 @@ Example:
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "both"
+    valid_modes = {"weather", "fastloop", "both"}
+
+    if mode not in valid_modes:
+        print(f"ERROR: Invalid mode '{mode}'")
+        print("Usage: python test_demo.py [weather|fastloop]")
+        sys.exit(2)
 
     banner("POLYMARKET PAPER TRADING - TEST DEMO")
     print(f"  Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}")
