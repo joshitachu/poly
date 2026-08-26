@@ -1,5 +1,5 @@
 {
-  "entry_threshold": 0.36,
+  "entry_threshold": 0.37,
   "exit_threshold": 0.45,
   "max_position_usd": 2.00,
   "sizing_pct": 0.05,
