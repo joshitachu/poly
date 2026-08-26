@@ -65,13 +65,36 @@ case "$MODE" in
     shift
     "$PYTHON" "$SCRIPT_DIR/scripts/summarize_logs.py" "$@"
     ;;
+  doctor)
+    shift
+    "$PYTHON" "$SCRIPT_DIR/scripts/doctor.py" "$@"
+    ;;
+  validate)
+    shift
+    "$PYTHON" "$SCRIPT_DIR/scripts/validate_config.py" "$@"
+    ;;
+  backtest)
+    shift
+    "$PYTHON" "$SCRIPT_DIR/scripts/backtest_momentum.py" "$@"
+    ;;
+  test)
+    shift
+    "$PYTHON" -m unittest discover -s "$SCRIPT_DIR/tests" "$@"
+    ;;
   help|*)
-    echo "Usage: $0 {weather|fastloop|status|summary}"
+    echo "Usage: $0 {weather|fastloop|status|summary|doctor|validate|backtest|test}"
     echo ""
-    echo "  weather   Run weather trader (paper mode, quiet)"
-    echo "  fastloop  Run BTC fastloop trader (paper mode, quiet)"
-    echo "  status    Show account balance & positions"
-    echo "  summary   Summarize past runs from logs/ (accepts --since, --json)"
+    echo "  Trading:"
+    echo "    weather   Run weather trader (paper mode, quiet)"
+    echo "    fastloop  Run BTC fastloop trader (paper mode, quiet)"
+    echo "    status    Show account balance & positions"
+    echo ""
+    echo "  Diagnostics (no API key needed):"
+    echo "    doctor    Preflight checks before deploying (--offline, --json)"
+    echo "    validate  Check both config.json files (--bot, --strict, --json)"
+    echo "    summary   Summarize past runs from logs/ (--since, --json)"
+    echo "    backtest  Sweep min_momentum_pct over Binance history (--days)"
+    echo "    test      Run the unit tests"
     exit 1
     ;;
 esac

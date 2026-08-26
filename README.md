@@ -55,10 +55,13 @@ pip install -r requirements.txt
 cp .env.example .env
 nano .env  # paste your SIMMER_API_KEY
 
-# 4. Test it works
+# 4. Check the box is ready (exits non-zero if not)
+./run.sh doctor
+
+# 5. Test it works
 python3 test_demo.py
 
-# 5. Add cron jobs
+# 6. Add cron jobs
 crontab -e
 ```
 
@@ -71,6 +74,52 @@ Add these lines to your crontab:
 # Fastloop bot every 5 minutes
 */5  * * * * /path/to/poly/run.sh fastloop >> /path/to/poly/logs/fastloop.log 2>&1
 ```
+
+## Diagnostics
+
+None of these need an API key or place a trade.
+
+```bash
+./run.sh doctor              # preflight: interpreter, SDK, key, configs, logs, APIs
+./run.sh doctor --offline    # skip the network probes
+./run.sh validate            # check both config.json files
+./run.sh test                # run the unit tests
+```
+
+Run `./run.sh doctor` after the VPS steps below and before adding cron entries.
+Cron failures are silent: a bot that dies on startup every five minutes looks
+exactly like a bot that found no trades. `doctor` exits non-zero if anything is
+actually broken, so it works as a deploy gate.
+
+`./run.sh validate` is worth running after any config edit. The traders load
+config with a `try/except` that swallows JSON errors and falls back to built-in
+defaults — so a stray comma means the bot keeps trading with parameters that
+don't match the file you just edited, and nothing in the logs mentions it. The
+validator also catches values that are legal JSON but unusable, e.g.
+`lookback_minutes: 1` (the momentum call needs two candles) or a
+`min_time_remaining` longer than the whole market window.
+
+## Tuning the Momentum Threshold
+
+`min_momentum_pct` is the fastloop bot's main dial. `./run.sh backtest` replays
+the same momentum calculation the trader uses over historical Binance candles
+and sweeps a range of thresholds:
+
+```bash
+./run.sh backtest                          # 3 days, settings from config.json
+./run.sh backtest --days 7 --asset ETH
+./run.sh backtest --thresholds 0.1,0.25,0.5
+./run.sh backtest --save-candles /tmp/btc.json   # then --candles-file to re-sweep offline
+```
+
+Read the output against the printed base rate, not on its own. The base rate is
+how often price rose over the same horizon with no signal at all; a hit rate
+near it means the threshold carries no information no matter how high it looks.
+
+This is deliberately not a P&L backtest — historical Polymarket prices aren't
+available here, so it can't model the `entry_threshold` divergence check or
+fees. It tests the hypothesis the strategy rests on (momentum persists over the
+next window), not the strategy itself.
 
 ## Reading the Logs
 
@@ -104,7 +153,14 @@ poly/
   config.json             # Fastloop config
   requirements.txt        # Python dependencies
   scripts/
+    lib/__init__.py       # Loads the traders by path to read their real schemas
+    doctor.py             # Preflight checks for a deployment
+    validate_config.py    # Validates both config.json files
     summarize_logs.py     # Roll up run logs (runs, trades, no-trade reasons)
+    backtest_momentum.py  # Sweep min_momentum_pct over Binance history
+  tests/
+    test_validate_config.py
+    test_summarize_logs.py
   weather-trader/
     weather_trader.py     # NOAA weather trader
     config.json           # Weather config
