@@ -4,16 +4,18 @@ Two automated paper-trading bots for Polymarket, powered by [Simmer](https://sim
 
 ## Quick Start
 
+Requires Python 3.9+.
+
 ```bash
 # 1. Install the SDK
-pip install simmer-sdk
+pip install -r requirements.txt
 
 # 2. Create your .env file
 cp .env.example .env
 # Edit .env and add your API key from https://simmer.markets/dashboard
 
 # 3. Run the demo to see both bots in action
-python test_demo.py
+python3 test_demo.py
 ```
 
 ## Running Individual Bots
@@ -29,22 +31,29 @@ python test_demo.py
 ./run.sh status
 ```
 
+`run.sh` calls `python3` by default. To use a virtualenv or another interpreter,
+set `PYTHON`:
+
+```bash
+PYTHON=./venv/bin/python ./run.sh fastloop
+```
+
 ## VPS Deployment
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/poly.git
+git clone https://github.com/joshitachu/poly.git
 cd poly
 
 # 2. Install dependencies
-pip install simmer-sdk
+pip install -r requirements.txt
 
 # 3. Set up your API key
 cp .env.example .env
 nano .env  # paste your SIMMER_API_KEY
 
 # 4. Test it works
-python test_demo.py
+python3 test_demo.py
 
 # 5. Add cron jobs
 crontab -e
@@ -73,6 +82,7 @@ poly/
   test_demo.py            # Interactive demo showing both bots
   fastloop_trader.py      # BTC 5-min fast market trader
   config.json             # Fastloop config
+  requirements.txt        # Python dependencies
   weather-trader/
     weather_trader.py     # NOAA weather trader
     config.json           # Weather config

@@ -15,6 +15,9 @@ set -euo pipefail
 # ── Configuration ──────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Interpreter — override with PYTHON=/path/to/python (e.g. a venv)
+PYTHON="${PYTHON:-python3}"
+
 # Load API key from .env file
 if [ -f "$SCRIPT_DIR/.env" ]; then
   set -a
@@ -22,7 +25,7 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
   set +a
 fi
 
-if [ -z "$SIMMER_API_KEY" ]; then
+if [ -z "${SIMMER_API_KEY:-}" ]; then
   echo "Error: SIMMER_API_KEY not set. Create a .env file — see .env.example"
   exit 1
 fi
@@ -41,17 +44,17 @@ MODE="${1:-help}"
 case "$MODE" in
   weather)
     ts
-    python "$SCRIPT_DIR/weather-trader/weather_trader.py" --quiet
+    "$PYTHON" "$SCRIPT_DIR/weather-trader/weather_trader.py" --quiet
     echo ""
     ;;
   fastloop)
     ts
-    python "$SCRIPT_DIR/fastloop_trader.py" --quiet
+    "$PYTHON" "$SCRIPT_DIR/fastloop_trader.py" --quiet
     echo ""
     ;;
   status)
     ts
-    python "$SCRIPT_DIR/weather-trader/scripts/status.py" --positions
+    "$PYTHON" "$SCRIPT_DIR/weather-trader/scripts/status.py" --positions
     ;;
   help|*)
     echo "Usage: $0 {weather|fastloop|status}"
