@@ -65,6 +65,10 @@ case "$MODE" in
     shift
     "$PYTHON" "$SCRIPT_DIR/scripts/summarize_logs.py" "$@"
     ;;
+  journal)
+    shift
+    "$PYTHON" "$SCRIPT_DIR/scripts/journal_report.py" "$@"
+    ;;
   doctor)
     shift
     "$PYTHON" "$SCRIPT_DIR/scripts/doctor.py" "$@"
@@ -82,7 +86,7 @@ case "$MODE" in
     "$PYTHON" -m unittest discover -s "$SCRIPT_DIR/tests" "$@"
     ;;
   help|*)
-    echo "Usage: $0 {weather|fastloop|status|summary|doctor|validate|backtest|test}"
+    echo "Usage: $0 {weather|fastloop|status|summary|journal|doctor|validate|backtest|test}"
     echo ""
     echo "  Trading:"
     echo "    weather   Run weather trader (paper mode, quiet)"
@@ -93,6 +97,7 @@ case "$MODE" in
     echo "    doctor    Preflight checks before deploying (--offline, --json)"
     echo "    validate  Check both config.json files (--bot, --strict, --json)"
     echo "    summary   Summarize past runs from logs/ (--since, --json)"
+    echo "    journal   Report on recorded trades (--since, --source, --json)"
     echo "    backtest  Sweep min_momentum_pct over Binance history (--days)"
     echo "    test      Run the unit tests"
     exit 1

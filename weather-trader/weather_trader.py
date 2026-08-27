@@ -29,6 +29,9 @@ from urllib.parse import urlencode
 sys.stdout.reconfigure(line_buffering=True)
 
 # Optional: Trade Journal integration for tracking
+# tradejournal.py lives at the repo root, one level up from this file, so it is
+# not on sys.path when cron runs `python weather-trader/weather_trader.py`
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 try:
     from tradejournal import log_trade
     JOURNAL_AVAILABLE = True

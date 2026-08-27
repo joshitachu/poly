@@ -121,6 +121,46 @@ available here, so it can't model the `entry_threshold` divergence check or
 fees. It tests the hypothesis the strategy rests on (momentum persists over the
 next window), not the strategy itself.
 
+## Trade Journal
+
+Both traders have always called `log_trade()` after a successful order, passing
+the thesis, a confidence score and the signal readings behind the decision. But
+they import it defensively:
+
+```python
+try:
+    from tradejournal import log_trade
+except ImportError:
+    def log_trade(*args, **kwargs):
+        pass          # <- this is what used to run
+```
+
+`tradejournal.py` did not exist, so the no-op won and all of that metadata was
+discarded. It now exists: each call appends one JSON object to
+`logs/trades.jsonl` (gitignored, override with `SIMMER_JOURNAL_PATH`).
+
+```bash
+./run.sh journal                      # per-bot summary
+./run.sh journal --since 7d
+./run.sh journal --source sdk:weather
+./run.sh journal --recent 5           # latest thesis lines
+python3 tradejournal.py --tail 3      # raw records
+```
+
+`log_trade()` never raises. It runs after an order has already executed, so an
+exception there would turn a filled trade into a crashed run with no record of
+it; failures warn on stderr and return `False`.
+
+Two things to know about coverage:
+
+- **The weather bot only journals live trades** (`not result.get("simulated")`),
+  while the fastloop bot journals in paper mode too. So a paper-only history
+  shows fastloop entries and no weather ones. That asymmetry is in the traders,
+  not the journal — left as-is rather than changing trade behavior.
+- **`journal` and `summary` answer different questions.** `summary` reads the
+  run logs: what each invocation did, including every no-trade. `journal` reads
+  the executed trades with their thesis and confidence attached.
+
 ## Reading the Logs
 
 Both bots run quiet under cron, so `logs/` fills up with a long tail of
@@ -152,15 +192,18 @@ poly/
   fastloop_trader.py      # BTC 5-min fast market trader
   config.json             # Fastloop config
   requirements.txt        # Python dependencies
+  tradejournal.py         # log_trade() — records executed trades to logs/
   scripts/
     lib/__init__.py       # Loads the traders by path to read their real schemas
     doctor.py             # Preflight checks for a deployment
     validate_config.py    # Validates both config.json files
     summarize_logs.py     # Roll up run logs (runs, trades, no-trade reasons)
+    journal_report.py     # Report on recorded trades
     backtest_momentum.py  # Sweep min_momentum_pct over Binance history
   tests/
     test_validate_config.py
     test_summarize_logs.py
+    test_tradejournal.py
   weather-trader/
     weather_trader.py     # NOAA weather trader
     config.json           # Weather config

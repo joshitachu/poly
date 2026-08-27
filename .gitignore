@@ -4,6 +4,7 @@
 # Runtime data
 daily_spend.json
 logs/*.log
+logs/*.jsonl
 
 # Python
 __pycache__/
