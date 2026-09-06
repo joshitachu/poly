@@ -121,6 +121,13 @@ available here, so it can't model the `entry_threshold` divergence check or
 fees. It tests the hypothesis the strategy rests on (momentum persists over the
 next window), not the strategy itself.
 
+The sweep is only trustworthy if it computes momentum the way the live trader
+does, so `tests/test_backtest_momentum.py` pins that against the formula in
+`get_binance_momentum()` — window boundaries, volume ratio, the volume gate and
+the entry/exit alignment. An off-by-one in the horizon wouldn't look wrong in
+the table; it would just be a hit rate for a window nobody trades. The tests run
+offline on synthetic candles (`./run.sh test`).
+
 ## Trade Journal
 
 Both traders have always called `log_trade()` after a successful order, passing
@@ -204,6 +211,7 @@ poly/
     test_validate_config.py
     test_summarize_logs.py
     test_tradejournal.py
+    test_backtest_momentum.py
   weather-trader/
     weather_trader.py     # NOAA weather trader
     config.json           # Weather config
